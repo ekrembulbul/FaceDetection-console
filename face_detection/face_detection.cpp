@@ -16,27 +16,19 @@ int main()
 	faceCascade.load( faceFileName );
 
 	cv::Mat frame;
-	cv::VideoCapture cap( 0 );
-	cap >> frame;
-
-	cv::Mat outFrame;
-	detectFaceAndEye( frame, outFrame, eyeCascade, faceCascade );
-
-	cv::namedWindow( winName );
-	cv::imshow( winName, outFrame );
-	cv::waitKey( 0 );
-
-/*
-	cv::Mat frame;
 	cv::VideoCapture cap(0);
 	while ( true )
 	{
 		cap >> frame;
-		cv::namedWindow( "video" );
-		cv::imshow( "video", frame );
+
+		cv::Mat outFrame;
+		detectFaceAndEye( frame, outFrame, eyeCascade, faceCascade );
+
+		cv::namedWindow( winName );
+		cv::imshow( winName, outFrame );
 		cv::waitKey( 40 );
 	}
-*/
+
 	return 0;
 }
 
