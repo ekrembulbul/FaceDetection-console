@@ -15,7 +15,9 @@ int main()
 	eyeCascade.load( eyeFileName );
 	faceCascade.load( faceFileName );
 
-	cv::Mat frame = cv::imread( "m(01-32)_gr.jpg" );
+	cv::Mat frame;
+	cv::VideoCapture cap( 0 );
+	cap >> frame;
 
 	cv::Mat outFrame;
 	detectFaceAndEye( frame, outFrame, eyeCascade, faceCascade );
