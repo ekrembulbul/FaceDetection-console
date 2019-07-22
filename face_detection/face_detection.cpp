@@ -1,39 +1,45 @@
 #include "pch.h"
-#include <iostream>
 #include <opencv2/opencv.hpp>
 
-void detectFaceAndEye( const cv::Mat & src, cv::Mat & dst, cv::CascadeClassifier & eyeCascade, cv::CascadeClassifier & faceCascade );
+void detectFace(const cv::Mat &src, cv::Mat &dst, cv::CascadeClassifier &faceCascade, int id);
 
 int main()
 {
-	const std::string eyeFileName = "haarcascade-eye.xml" ;
+	//const std::string eyeFileName = "haarcascade-eye.xml" ;
 	const std::string faceFileName = "haarcascade-frontalface-default.xml";
 	const std::string winName = "Image";
 
-	cv::CascadeClassifier eyeCascade;
+	//cv::CascadeClassifier eyeCascade;
 	cv::CascadeClassifier faceCascade;
-	eyeCascade.load( eyeFileName );
+	//eyeCascade.load( eyeFileName );
 	faceCascade.load( faceFileName );
 
 	cv::Mat frame;
 	cv::VideoCapture cap(0);
-	while ( true )
+
+	int userId;
+	std::cout << "Enter user id:" << std::endl;
+	std::cin >> userId;
+	
+	while (true)
 	{
 		cap >> frame;
 
 		cv::Mat outFrame;
-		detectFaceAndEye( frame, outFrame, eyeCascade, faceCascade );
+		detectFace(frame, outFrame, faceCascade, userId);
 
 		cv::namedWindow( winName );
 		cv::imshow( winName, outFrame );
-		cv::waitKey( 40 );
+		cv::waitKey( 1000 );
 	}
 
 	return 0;
 }
 
-void detectFaceAndEye( const cv::Mat & src, cv::Mat & dst, cv::CascadeClassifier & eyeCascade, cv::CascadeClassifier & faceCascade )
+void detectFace(const cv::Mat &src, cv::Mat &dst, cv::CascadeClassifier &faceCascade, int id)
 {
+	static int count = 0;
+
 	cv::Mat gray;
 	std::vector<cv::Rect> faces;
 
@@ -44,5 +50,9 @@ void detectFaceAndEye( const cv::Mat & src, cv::Mat & dst, cv::CascadeClassifier
 	for ( auto & face : faces )
 	{
 		cv::rectangle( dst, face, cv::Scalar( 0, 0, 255 ), 2 );
+
+		std::string fileName = std::string("dataset/user") + std::to_string(id) + std::string(".") + std::to_string(count) + std::string(".jpg");
+		cv::imwrite(fileName, cv::Mat(gray, face));
+		count++;
 	}
 }
