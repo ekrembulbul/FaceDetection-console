@@ -88,6 +88,7 @@ void recognizer::readPictures(int id)
 		}
 		
 		_pics.push_back(pic);
+		_labels.push_back(id);
 		count++;
 	}
 }
