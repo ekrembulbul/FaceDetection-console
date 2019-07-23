@@ -5,7 +5,7 @@ int main()
 {
 	recognizer r;
 	r.takePicture();
-	r.readPictures(0);
+	r.train();
 
 	return 0;
 }

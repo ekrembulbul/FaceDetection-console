@@ -1,12 +1,16 @@
 #include "pch.h"
 #include "recognizer.h"
 #include <opencv2/opencv.hpp>
+#include <opencv2/face.hpp>
 
 
-recognizer::recognizer():
+//public
+
+
+recognizer::recognizer() :
 	_faceFileName("haarcascade-frontalface-default.xml"),
-	_winName("Image"),
-	_flag(false)
+	_flag(false),
+	_model(cv::face::LBPHFaceRecognizer::create())
 {
 }
 
@@ -19,9 +23,10 @@ recognizer::~recognizer()
 void recognizer::takePicture()
 {
 	_faceCascade.load(_faceFileName);
-
+	 
 	cv::Mat frame;
 	cv::VideoCapture cap(0);
+	std::string winName("Cam");
 
 	int userId;
 	std::cout << "Enter user id:" << std::endl;
@@ -39,12 +44,32 @@ void recognizer::takePicture()
 		cv::Mat outFrame;
 		detectFace(frame, outFrame, userId);
 
-		cv::namedWindow(_winName);
-		cv::imshow(_winName, outFrame);
+		cv::namedWindow(winName);
+		cv::imshow(winName, outFrame);
 	}
 
 	std::cout << "[INFO] Face capture is done." << std::endl;
+	cv::destroyWindow(winName);
 }
+
+
+void recognizer::train()
+{
+	int userId;
+	std::cout << "Enter user id:" << std::endl;
+	std::cin >> userId;
+
+	std::cout << "[INFO] Training faces. It will take a few seconds. Wait..." << std::endl;
+	readPictures(userId);
+	std::vector<int> label(_pics.size(), userId);
+	_model->train(_pics, label);
+	const std::string fn = "trainer/trainer.yml";
+	_model->write(fn);
+	std::cout << "[INFO] " << _pics.size() << " faces trained." << std::endl;
+}
+
+
+//private
 
 
 void recognizer::detectFace(const cv::Mat &src, cv::Mat &dst, int id)
@@ -73,28 +98,17 @@ void recognizer::detectFace(const cv::Mat &src, cv::Mat &dst, int id)
 }
 
 
-void recognizer::readPictures(int id)
+void recognizer::readPictures(int userId)
 {
 	int count = 0;
 	while (true)
 	{
-		std::string fileName = std::string("dataset/user") + std::to_string(id) + std::string(".") + std::to_string(count) + std::string(".jpg");
-		cv::Mat pic = cv::imread(fileName);
+		std::string fileName = std::string("dataset/user") + std::to_string(userId) + std::string(".") + std::to_string(count) + std::string(".jpg");
+		cv::Mat pic = cv::imread(fileName, cv::IMREAD_GRAYSCALE);
 		
-		if (pic.data == NULL) 
-		{
-			std::cout << _pics.size() << std::endl;
-			return;
-		}
+		if (pic.data == NULL) return;
 		
 		_pics.push_back(pic);
-		_labels.push_back(id);
 		count++;
 	}
-}
-
-
-void recognizer::createRecognizer()
-{
-
 }

@@ -1,5 +1,5 @@
 #include <opencv2/opencv.hpp>
-//#include <opencv2/f>
+#include <opencv2/face.hpp>
 #include <vector>
 
 
@@ -10,18 +10,16 @@ public:
 	recognizer();
 	~recognizer();
 	void takePicture();
-	void readPictures(int id);
+	void train();
 
 private:
-	const std::string _faceFileName;
-	const std::string _winName;
-	cv::CascadeClassifier _faceCascade;
 	int _flag;
+	const std::string _faceFileName;
+	cv::CascadeClassifier _faceCascade;
 	std::vector<cv::Mat> _pics;
-	std::vector<int> _labels;
-	//Ptr<cv::face::FaceRecognizer> model;
+	cv::Ptr<cv::face::FaceRecognizer> _model;
 
 	void detectFace(const cv::Mat &src, cv::Mat &dst, int id);
-	void createRecognizer();
+	void readPictures(int userId);
 };
 
