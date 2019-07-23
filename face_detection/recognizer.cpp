@@ -9,6 +9,7 @@
 
 recognizer::recognizer() :
 	_faceFileName("haarcascade-frontalface-default.xml"),
+	_trainedFileName("trainer/trainer.yml"),
 	_flag(false),
 	_model(cv::face::LBPHFaceRecognizer::create())
 {
@@ -63,9 +64,48 @@ void recognizer::train()
 	readPictures(userId);
 	std::vector<int> label(_pics.size(), userId);
 	_model->train(_pics, label);
-	const std::string fn = "trainer/trainer.yml";
-	_model->write(fn);
+	_model->write(_trainedFileName);
 	std::cout << "[INFO] " << _pics.size() << " faces trained." << std::endl;
+}
+
+
+void recognizer::predict()
+{
+	_model->read(_trainedFileName);
+
+	cv::Mat frame;
+	cv::VideoCapture cap(0);
+	std::string winName("Cam");
+	cv::HersheyFonts font = cv::FONT_HERSHEY_SIMPLEX;
+	std::string id0 = "Ekrem";
+
+	while (true)
+	{
+		cap >> frame;
+
+		cv::Mat gray;
+		std::vector<cv::Rect> faces;
+		cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+		_faceCascade.detectMultiScale(gray, faces);
+		for (auto & face : faces)
+		{
+			cv::rectangle(frame, face, cv::Scalar(0, 0, 255), 2);
+			int label;
+			double conf;
+			_model->predict(cv::Mat(gray, face), label, conf);
+			cv::putText(frame, std::to_string(label), cv::Point(face.x + 5, face.y - 5), font, 1, (0, 0, 255));
+			cv::putText(frame, std::to_string(100 - conf), cv::Point(face.x + 5, face.y + face.height - 5), font, 1, (0, 0, 255));
+		}
+		
+		cv::namedWindow(winName);
+		cv::imshow(winName, frame);
+
+		if (cv::waitKey(40) == 27) break;
+	}
+
+	std::cout << "[INFO] Exiting Program and cleanup stuff" << std::endl;
+	cap.release();
+	cv::destroyAllWindows();
 }
 
 

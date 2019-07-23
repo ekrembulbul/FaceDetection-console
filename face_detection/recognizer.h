@@ -11,9 +11,11 @@ public:
 	~recognizer();
 	void takePicture();
 	void train();
+	void predict();
 
 private:
 	int _flag;
+	const std::string _trainedFileName;
 	const std::string _faceFileName;
 	cv::CascadeClassifier _faceCascade;
 	std::vector<cv::Mat> _pics;
