@@ -119,10 +119,13 @@ void recognizer::predictFromCam()
 }
 
 
-void recognizer::readImagesAndPredict()
+void recognizer::predictFromImage()
 {
+	std::cout << "[INFO] Predicting faces. It will take a few seconds. Wait..." << std::endl;
+	_model->read(_trainedFileName);
+	double conf;
+	int label;
 	int count = 0;
-	_pics.clear();
 	while (true)
 	{
 		std::string fileName = std::string("pred_image/") + std::to_string(count) + std::string(".jpg");
@@ -130,9 +133,16 @@ void recognizer::readImagesAndPredict()
 
 		if (pic.data == NULL) break;
 
-		_pics.push_back(pic);
+		std::vector<cv::Rect> faces;
+		_faceCascade.detectMultiScale(pic, faces);
+		for (auto & face : faces)
+		{
+			_model->predict(cv::Mat(pic, face), label, conf);
+			std::cout << count << ". " << conf << std::endl;
+		}
 		count++;
 	}
+	std::cout << "[INFO] Prediction done." << std::endl;
 }
 
 
@@ -176,24 +186,5 @@ void recognizer::readPictures(int userId)
 
 		_pics.push_back(pic);
 		count++;
-	}
-}
-
-
-void recognizer::predictFromImage(const cv::Mat &frame, double &conf)
-{
-	_model->read(_trainedFileName);
-
-	cv::Mat gray;
-	std::string winName("Image");
-	std::vector<cv::Rect> faces;
-	cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-	_faceCascade.detectMultiScale(gray, faces);
-	for (auto & face : faces)
-	{
-		cv::rectangle(frame, face, cv::Scalar(0, 0, 255), 2);
-		int label;
-		double conf;
-		_model->predict(cv::Mat(gray, face), label, conf);
 	}
 }

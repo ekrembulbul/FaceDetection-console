@@ -12,7 +12,7 @@ public:
 	void takePicture();
 	void train();
 	void predictFromCam();
-	void readImagesAndPredict();
+	void predictFromImage();
 
 private:
 	int _flag;
@@ -24,6 +24,5 @@ private:
 
 	void detectFace(const cv::Mat &src, cv::Mat &dst, int id, int &count);
 	void readPictures(int userId);
-	void predictFromImage(const cv::Mat &frame, double &conf);
 };
 
