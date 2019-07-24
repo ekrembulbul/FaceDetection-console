@@ -13,6 +13,7 @@ public:
 	void train();
 	void predictFromCam();
 	void predictFromImage();
+	void multiTrain();
 
 private:
 	int _flag;

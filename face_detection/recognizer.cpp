@@ -70,6 +70,34 @@ void recognizer::train()
 }
 
 
+void recognizer::multiTrain()
+{
+	std::vector<std::vector<cv::Mat>> arrayOfPics;
+	std::vector<std::vector<int>> arrayOfLabels;
+	int userCount;
+	std::cout << "Enter user count:" << std::endl;
+	std::cin >> userCount;
+	std::cout << "[INFO] Training faces. It will take a few seconds. Wait..." << std::endl;
+
+	for (int i = 0; i < userCount; i++)
+	{
+		readPictures(i);
+		arrayOfPics.push_back(_pics);
+		std::vector<int> label(_pics.size(), i);
+		arrayOfLabels.push_back(label);
+	}
+	std::vector<cv::Mat> pics;
+	std::vector<int> labels;
+	for (auto i : arrayOfPics) for (auto j : i) pics.push_back(j);
+	for (auto i : arrayOfLabels) for (auto j : i) labels.push_back(j);
+	//for (auto &i : labels) std::cout << i << std::endl;
+	_model->train(pics, labels);
+	_model->write("trainer/multi_trainer.yml");
+
+	std::cout << "[INFO] " << pics.size() << " faces trained." << std::endl;
+}
+
+
 void recognizer::predictFromCam()
 {
 	_model->read(_trainedFileName);
