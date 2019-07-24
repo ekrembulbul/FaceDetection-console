@@ -60,7 +60,6 @@ void recognizer::train()
 	int userId;
 	std::cout << "Enter user id:" << std::endl;
 	std::cin >> userId;
-
 	std::cout << "[INFO] Training faces. It will take a few seconds. Wait..." << std::endl;
 	readPictures(userId);
 	std::vector<int> label(_pics.size(), userId);
@@ -74,9 +73,18 @@ void recognizer::multiTrain()
 {
 	std::vector<std::vector<cv::Mat>> arrayOfPics;
 	std::vector<std::vector<int>> arrayOfLabels;
+	std::string tmpName;
 	int userCount;
 	std::cout << "Enter user count:" << std::endl;
 	std::cin >> userCount;
+
+	std::ofstream outFile("dataset/names.txt");
+	for (int i = 0; i < userCount; i++)
+	{
+		std::cin >> tmpName;
+		outFile << tmpName << std::endl;
+	}
+	outFile.close();
 	std::cout << "[INFO] Training faces. It will take a few seconds. Wait..." << std::endl;
 
 	for (int i = 0; i < userCount; i++)
@@ -104,7 +112,7 @@ void recognizer::predictFromCam()
 
 	cv::Mat frame;
 	cv::VideoCapture cap(0);
-	std::string winName("Cam");
+	std::string winName("Predict");
 	cv::HersheyFonts font = cv::FONT_HERSHEY_SIMPLEX;
 
 	while (true)
@@ -143,6 +151,55 @@ void recognizer::predictFromCam()
 	}
 
 	std::cout << "[INFO] Prediction done." << std::endl;
+	cap.release();
+	cv::destroyAllWindows();
+}
+
+
+void recognizer::multiPredictFromCam()
+{
+	_model->read("trainer/multi_trainer.yml");
+
+	int threshold = 60;
+	std::vector<std::string> names;
+	std::string tmpNames;
+	std::ifstream inFile("dataset/names.txt");
+	while (inFile >> tmpNames) names.push_back(tmpNames);
+	std::cout << names.size() << std::endl;
+
+	cv::Mat frame;
+	cv::VideoCapture cap(0);
+	std::string winName("Multi Predict");
+	cv::HersheyFonts font = cv::FONT_HERSHEY_SIMPLEX;
+
+	while (true)
+	{
+		cap >> frame;
+
+		cv::Mat gray;
+		std::vector<cv::Rect> faces;
+		cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+		_faceCascade.detectMultiScale(gray, faces);
+		for (auto & face : faces)
+		{
+			cv::rectangle(frame, face, cv::Scalar(0, 0, 255), 2);
+			int label;
+			double conf;
+			_model->predict(cv::Mat(gray, face), label, conf);
+
+			std::string s;
+			if (conf < threshold) s = names[label];
+			else s = "unknown";
+
+			cv::putText(frame, s, cv::Point(face.x + 5, face.y - 5), font, 1, (0, 0, 255), 2);
+		}
+
+		cv::namedWindow(winName);
+		cv::imshow(winName, frame);
+
+		if (cv::waitKey(40) == 27) break;
+	}
+	std::cout << "[INFO] Multi prediction done." << std::endl;
 	cap.release();
 	cv::destroyAllWindows();
 }

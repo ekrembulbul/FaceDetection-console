@@ -15,6 +15,7 @@ int main()
 			"3. Predict from cam\n" <<
 			"4. Predict from image\n" <<
 			"5. Multi train\n" <<
+			"6. Multi predict from cam\n" <<
 			"Q. Quit" <<
 			std::endl;
 		std::cin >> choice;
@@ -28,6 +29,7 @@ int main()
 		else if (choice == '3') r.predictFromCam();
 		else if (choice == '4') r.predictFromImage();
 		else if (choice == '5') r.multiTrain();
+		else if (choice == '6') r.multiPredictFromCam();
 		else std::cout << "Invalid choice!" << std::endl;
 	}
 

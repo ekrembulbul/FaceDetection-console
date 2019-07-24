@@ -14,6 +14,7 @@ public:
 	void predictFromCam();
 	void predictFromImage();
 	void multiTrain();
+	void multiPredictFromCam();
 
 private:
 	int _flag;
