@@ -2,6 +2,7 @@
 #include "recognizer.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/face.hpp>
+#include <map>
 
 
 //public
@@ -121,6 +122,8 @@ void recognizer::predictFromCam()
 
 void recognizer::predictFromImage()
 {
+	std::multimap<double, int> confs;
+
 	std::cout << "[INFO] Predicting faces. It will take a few seconds. Wait..." << std::endl;
 	_model->read(_trainedFileName);
 	double conf;
@@ -138,9 +141,15 @@ void recognizer::predictFromImage()
 		for (auto & face : faces)
 		{
 			_model->predict(cv::Mat(pic, face), label, conf);
-			std::cout << count << ". " << conf << std::endl;
+			//std::cout << count << ". " << conf << std::endl;
+			confs.insert({ conf, count });
 		}
 		count++;
+	}
+
+	for (auto &i: confs)
+	{
+		std::cout << i.second << ". " << i.first << std::endl;
 	}
 	std::cout << "[INFO] Prediction done." << std::endl;
 }
