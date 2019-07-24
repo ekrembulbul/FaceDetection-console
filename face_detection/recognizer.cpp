@@ -13,6 +13,7 @@ recognizer::recognizer() :
 	_flag(false),
 	_model(cv::face::LBPHFaceRecognizer::create())
 {
+	_faceCascade.load(_faceFileName);
 }
 
 
@@ -23,16 +24,15 @@ recognizer::~recognizer()
 
 void recognizer::takePicture()
 {
-	_faceCascade.load(_faceFileName);
-	 
 	cv::Mat frame;
 	cv::VideoCapture cap(0);
 	std::string winName("Cam");
 
 	int userId;
+	int count = 0;
 	std::cout << "Enter user id:" << std::endl;
 	std::cin >> userId;
-	std::cout << "[INFO] Initializing face capture. Look the camera and wait..." << std::endl;
+	std::cout << "[INFO] Initializing face capture. Look the camera and press space..." << std::endl;
 
 	while (true)
 	{
@@ -43,14 +43,14 @@ void recognizer::takePicture()
 		else if (key == 32) _flag = true;
 
 		cv::Mat outFrame;
-		detectFace(frame, outFrame, userId);
+		detectFace(frame, outFrame, userId, count);
 
 		cv::namedWindow(winName);
 		cv::imshow(winName, outFrame);
 	}
 
-	std::cout << "[INFO] Face capture is done." << std::endl;
 	cv::destroyWindow(winName);
+	std::cout << "[INFO] Face capture is done." << std::endl;
 }
 
 
@@ -69,7 +69,7 @@ void recognizer::train()
 }
 
 
-void recognizer::predict()
+void recognizer::predictFromCam()
 {
 	_model->read(_trainedFileName);
 
@@ -77,7 +77,6 @@ void recognizer::predict()
 	cv::VideoCapture cap(0);
 	std::string winName("Cam");
 	cv::HersheyFonts font = cv::FONT_HERSHEY_SIMPLEX;
-	std::string id0 = "Ekrem";
 
 	while (true)
 	{
@@ -92,9 +91,20 @@ void recognizer::predict()
 			cv::rectangle(frame, face, cv::Scalar(0, 0, 255), 2);
 			int label;
 			double conf;
+			//int confI;
 			_model->predict(cv::Mat(gray, face), label, conf);
-			cv::putText(frame, std::to_string(label), cv::Point(face.x + 5, face.y - 5), font, 1, (0, 0, 255));
-			cv::putText(frame, std::to_string(100 - conf), cv::Point(face.x + 5, face.y + face.height - 5), font, 1, (0, 0, 255));
+			//if (conf < 50) {
+			//	id0 = "Ekrem";
+			//	confI = (int) std::round(50 - conf);
+			//}
+			//else
+			//{
+			//	id0 = "Unknown";
+			//	confI = (int)std::round(50 - conf);
+			//}
+			//std::string s = std::to_string(confI) + std::string(" - ") + id0;
+			cv::putText(frame, std::to_string(conf), cv::Point(face.x + 5, face.y - 5), font, 1, (0, 0, 255), 2);
+			//cv::putText(frame, std::to_string(confI), cv::Point(face.x + 5, face.y + 10), font, 1, (0, 0, 255), 2);
 		}
 		
 		cv::namedWindow(winName);
@@ -103,19 +113,34 @@ void recognizer::predict()
 		if (cv::waitKey(40) == 27) break;
 	}
 
-	std::cout << "[INFO] Exiting Program and cleanup stuff" << std::endl;
+	std::cout << "[INFO] Prediction done." << std::endl;
 	cap.release();
 	cv::destroyAllWindows();
+}
+
+
+void recognizer::readImagesAndPredict()
+{
+	int count = 0;
+	_pics.clear();
+	while (true)
+	{
+		std::string fileName = std::string("pred_image/") + std::to_string(count) + std::string(".jpg");
+		cv::Mat pic = cv::imread(fileName, cv::IMREAD_GRAYSCALE);
+
+		if (pic.data == NULL) break;
+
+		_pics.push_back(pic);
+		count++;
+	}
 }
 
 
 //private
 
 
-void recognizer::detectFace(const cv::Mat &src, cv::Mat &dst, int id)
+void recognizer::detectFace(const cv::Mat &src, cv::Mat &dst, int id, int &count)
 {
-	static int count = 0;
-
 	cv::Mat gray;
 	std::vector<cv::Rect> faces;
 
@@ -141,14 +166,34 @@ void recognizer::detectFace(const cv::Mat &src, cv::Mat &dst, int id)
 void recognizer::readPictures(int userId)
 {
 	int count = 0;
+	_pics.clear();
 	while (true)
 	{
 		std::string fileName = std::string("dataset/user") + std::to_string(userId) + std::string(".") + std::to_string(count) + std::string(".jpg");
 		cv::Mat pic = cv::imread(fileName, cv::IMREAD_GRAYSCALE);
 		
 		if (pic.data == NULL) return;
-		
+
 		_pics.push_back(pic);
 		count++;
+	}
+}
+
+
+void recognizer::predictFromImage(const cv::Mat &frame, double &conf)
+{
+	_model->read(_trainedFileName);
+
+	cv::Mat gray;
+	std::string winName("Image");
+	std::vector<cv::Rect> faces;
+	cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+	_faceCascade.detectMultiScale(gray, faces);
+	for (auto & face : faces)
+	{
+		cv::rectangle(frame, face, cv::Scalar(0, 0, 255), 2);
+		int label;
+		double conf;
+		_model->predict(cv::Mat(gray, face), label, conf);
 	}
 }

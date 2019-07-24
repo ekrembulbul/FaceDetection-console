@@ -11,7 +11,8 @@ public:
 	~recognizer();
 	void takePicture();
 	void train();
-	void predict();
+	void predictFromCam();
+	void readImagesAndPredict();
 
 private:
 	int _flag;
@@ -21,7 +22,8 @@ private:
 	std::vector<cv::Mat> _pics;
 	cv::Ptr<cv::face::FaceRecognizer> _model;
 
-	void detectFace(const cv::Mat &src, cv::Mat &dst, int id);
+	void detectFace(const cv::Mat &src, cv::Mat &dst, int id, int &count);
 	void readPictures(int userId);
+	void predictFromImage(const cv::Mat &frame, double &conf);
 };
 
