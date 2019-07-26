@@ -1,14 +1,16 @@
+#pragma once
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/face.hpp>
 #include <vector>
 
 
-#pragma once
 class recognizer
 {
 public:
 	recognizer();
 	~recognizer();
+	void loadXml(std::string fileName);
 	void takePicture();
 	void train();
 	void predictFromCam();
@@ -17,14 +19,12 @@ public:
 	void multiPredictFromCam();
 
 private:
-	int _flag;
-	const std::string _trainedFileName;
-	const std::string _faceFileName;
 	cv::CascadeClassifier _faceCascade;
-	std::vector<cv::Mat> _pics;
 	cv::Ptr<cv::face::FaceRecognizer> _model;
+	using pics_t = std::vector<cv::Mat>;
+	using labels_t = std::vector<int>;
+	using faces_t = std::vector<cv::Rect>;
 
-	void detectFace(const cv::Mat &src, cv::Mat &dst, int id, int &count);
-	void readPictures(int userId);
+	void detectFace(cv::Mat &src, int id, int &count, bool saveFace);
+	void readPictures(int userId, pics_t &pics, labels_t &labels);
 };
-

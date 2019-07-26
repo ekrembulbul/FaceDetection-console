@@ -1,12 +1,14 @@
 #include "pch.h"
 #include "recognizer.h"
 
+
 int main()
 {
 	recognizer r;
-	char choice;
+	r.loadXml("haarcascade-frontalface-default.xml");
+	char choice = 0;
 
-	while (true)
+	while (choice != 'q' && choice != 'Q')
 	{
 		std::cout <<
 			"Enter the action you want to do:\n" <<
@@ -19,12 +21,7 @@ int main()
 			"Q. Quit" <<
 			std::endl;
 		std::cin >> choice;
-		if (choice == 'q' || choice == 'Q')
-		{
-			std::cout << "[INFO] Program done." << std::endl;
-			return 0;
-		}
-		else if (choice == '1') r.takePicture();
+		if (choice == '1') r.takePicture();
 		else if (choice == '2') r.train();
 		else if (choice == '3') r.predictFromCam();
 		else if (choice == '4') r.predictFromImage();
@@ -32,6 +29,6 @@ int main()
 		else if (choice == '6') r.multiPredictFromCam();
 		else std::cout << "Invalid choice!" << std::endl;
 	}
-
+	std::cout << "[INFO] Program done." << std::endl;
 	return 0;
 }
